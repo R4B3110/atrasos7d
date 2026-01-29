@@ -1,0 +1,32 @@
+services:
+  - type: worker
+    name: clickup-monitor
+    env: node
+    buildCommand: npm install
+    startCommand: node src/automation/scheduler.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLICKUP_API_TOKEN
+        sync: false
+      - key: CLICKUP_LIST_ID_1
+        value: 192989536
+      - key: CLICKUP_LIST_ID_2
+        value: 901002328166
+      - key: CLICKUP_TAG_NAME
+        value: semana anterior
+      - key: CLICKUP_ALERT_STATUSES
+        value: STAND BY,PENDENTE,PRONTO PARA FAZER,EM PROGRESSO,EM VALIDAÇÃO,EM ALTERAÇÃO
+      - key: ALERT_DAYS_THRESHOLD
+        value: 7
+      - key: CRON_SCHEDULE_MORNING
+        value: 0 9 * * *
+      - key: CRON_SCHEDULE_AFTERNOON
+        value: 0 17 * * *
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: LOG_LEVEL
+        value: 1

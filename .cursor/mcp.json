@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "clickup": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-clickup"],
+      "env": {
+        "CLICKUP_WORKSPACE_ID": "YOUR_WORKSPACE_ID_HERE",
+        "CLICKUP_SPACE_ID": "YOUR_SPACE_ID_HERE"
+      },
+      "disabled": false
+    }
+  }
+}

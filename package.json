@@ -1,0 +1,43 @@
+{
+  "name": "clickup-mcp-integration",
+  "version": "1.0.0",
+  "description": "ClickUp MCP Server Integration - Connect to ClickUp using Model Context Protocol",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "monitor": "node src/automation/monitor.js",
+    "monitor:stats": "node src/automation/monitor.js --stats",
+    "monitor:watch": "node src/automation/scheduler.js",
+    "test:telegram": "node src/automation/test-telegram.js",
+    "test:monitor": "node src/automation/test-monitor.js",
+    "test:all": "npm run test:telegram && npm run test:monitor"
+  },
+  "keywords": [
+    "clickup",
+    "mcp",
+    "model-context-protocol",
+    "typescript",
+    "oauth",
+    "task-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.6.5",
+    "dotenv": "^16.4.1",
+    "node-cron": "^4.2.1",
+    "node-telegram-bot-api": "^0.67.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
