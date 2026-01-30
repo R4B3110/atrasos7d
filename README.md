@@ -10,6 +10,7 @@ Projeto TypeScript para integração com o servidor MCP (Model Context Protocol)
 - ✅ Busca em documentos e comentários
 - ✅ Autenticação OAuth 2.1 com PKCE
 - ✅ Integração nativa com Cursor IDE
+- 🤖 **Automação de alertas para tarefas atrasadas via n8n**
 
 ## Requisitos
 
@@ -123,12 +124,109 @@ Este projeto usa OAuth 2.1 com PKCE para autenticação segura. O fluxo é:
 
 O servidor MCP do ClickUp respeita os mesmos rate limits da API oficial do ClickUp. Consulte a [documentação de rate limits](https://developer.clickup.com/docs/rate-limits).
 
+## 🤖 Automação: Alertas de Tarefas Atrasadas (n8n)
+
+Este projeto inclui uma automação completa para monitorar tarefas atrasadas no ClickUp e enviar alertas via Telegram.
+
+### ✨ Funcionalidades da Automação
+
+- 🕐 **Verificação automática** 2x por dia (9h e 17h)
+- 📋 **Monitora listas específicas** do ClickUp
+- 🏷️ **Filtra por tag** "semana anterior"
+- ⏰ **Detecta atrasos** maiores que 7 dias
+- 📱 **Envia alertas** formatados no Telegram
+- ☁️ **Roda 24/7** na nuvem (n8n Cloud gratuito)
+- 🎯 **Zero código** - tudo visual no n8n
+
+### 📦 Arquivos da Automação
+
+```
+workflows/
+├── clickup-alertas-n8n.json    # Workflow n8n pronto para importar
+└── test-n8n-logic.js            # Testes de validação da lógica
+
+N8N-SETUP.md                      # Guia completo passo a passo
+```
+
+### 🚀 Como Usar
+
+1. **Crie uma conta gratuita no n8n Cloud**
+   - Acesse: https://n8n.io
+   - Plano gratuito: 5.000 execuções/mês (mais que suficiente!)
+
+2. **Importe o workflow**
+   - Baixe o arquivo `workflows/clickup-alertas-n8n.json`
+   - No n8n: Workflows → Import from File
+
+3. **Configure as credenciais**
+   - **ClickUp**: Adicione seu API Token (obtenha em https://app.clickup.com/settings/apps)
+   - **Telegram**: Adicione seu Bot Token (crie com @BotFather)
+
+4. **Ative o workflow**
+   - Teste manualmente primeiro
+   - Depois ative para rodar automaticamente
+
+### 📖 Documentação Completa
+
+Consulte o **[N8N-SETUP.md](N8N-SETUP.md)** para:
+- Guia passo a passo com screenshots
+- Como obter API tokens e Bot tokens
+- Configuração de credenciais
+- Testes e troubleshooting
+- Personalização de horários e filtros
+
+### 🎯 Critérios de Alerta
+
+Uma tarefa é considerada atrasada quando:
+- ✅ Tem a tag `"semana anterior"`
+- ✅ O `due_date` foi definido há **mais de 7 dias**
+- ✅ Está em um dos status ativos:
+  - `STAND BY`
+  - `PENDENTE`
+  - `PRONTO PARA FAZER`
+  - `EM PROGRESSO`
+  - `EM VALIDAÇÃO`
+  - `EM ALTERAÇÃO`
+
+### 💰 Custo
+
+**$0/mês** - O plano gratuito do n8n Cloud é suficiente:
+- 5.000 execuções/mês
+- Você usa ~60 execuções/mês (2 por dia)
+- Equivale a apenas 1,2% do limite
+
+### 🔧 Personalização
+
+Você pode facilmente modificar no n8n (interface visual):
+- ⏰ Horários de verificação (cron expressions)
+- 📋 Listas monitoradas (IDs das listas)
+- 🏷️ Tags filtradas
+- 📊 Status considerados
+- 🕐 Threshold de dias (padrão: 7)
+
+### 🧪 Testes
+
+Para validar a lógica localmente antes de importar:
+
+```bash
+node workflows/test-n8n-logic.js
+```
+
+Isso executa testes automatizados com dados mock para verificar:
+- ✅ Filtro de tarefas atrasadas
+- ✅ Formatação da mensagem Telegram
+- ✅ Validação de todos os critérios
+
+---
+
 ## Recursos
 
 - [Documentação oficial ClickUp MCP](https://developer.clickup.com/docs/connect-an-ai-assistant-to-clickups-mcp-server)
 - [MCP Tools disponíveis](https://developer.clickup.com/docs/mcp-tools)
 - [ClickUp API Reference](https://developer.clickup.com/reference)
 - [OAuth ClickUp](https://developer.clickup.com/docs/oauth)
+- [n8n Documentation](https://docs.n8n.io)
+- [n8n ClickUp Integration](https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.clickup)
 
 ## Licença
 

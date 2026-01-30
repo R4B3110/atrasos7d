@@ -1,0 +1,264 @@
+{
+  "name": "ClickUp - Alertas de Tarefas Atrasadas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule: 9h e 17h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "id": "schedule-trigger"
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "getAll",
+        "listId": "192989536",
+        "returnAll": false,
+        "limit": 100,
+        "filters": {
+          "archived": false,
+          "includeClosed": false
+        }
+      },
+      "name": "ClickUp - Lista 1",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [450, 200],
+      "id": "clickup-list-1",
+      "credentials": {
+        "clickUpApi": {
+          "id": "CLICKUP_CREDENTIAL_ID",
+          "name": "ClickUp API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "getAll",
+        "listId": "901002328166",
+        "returnAll": false,
+        "limit": 100,
+        "filters": {
+          "archived": false,
+          "includeClosed": false
+        }
+      },
+      "name": "ClickUp - Lista 2",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [450, 400],
+      "id": "clickup-list-2",
+      "credentials": {
+        "clickUpApi": {
+          "id": "CLICKUP_CREDENTIAL_ID",
+          "name": "ClickUp API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "options": {}
+      },
+      "name": "Merge: Combinar Listas",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [650, 300],
+      "id": "merge-lists"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Configurações\nconst STATUSES_ALERTAR = [\n  'STAND BY', 'PENDENTE', 'PRONTO PARA FAZER',\n  'EM PROGRESSO', 'EM VALIDAÇÃO', 'EM ALTERAÇÃO'\n];\nconst TAG_NAME = 'semana anterior';\nconst DAYS_THRESHOLD = 7;\n\nconst tarefasAtrasadas = [];\nconst agora = new Date();\n\n// Processar todas as tarefas\nfor (const item of $input.all()) {\n  const task = item.json;\n  \n  // 1. Verifica se tem a tag \"semana anterior\"\n  const temTag = task.tags?.some(tag => \n    tag.name.toLowerCase() === TAG_NAME.toLowerCase()\n  );\n  if (!temTag) continue;\n  \n  // 2. Verifica se está em status de alerta\n  const statusAtual = task.status?.status?.toUpperCase();\n  if (!STATUSES_ALERTAR.includes(statusAtual)) continue;\n  \n  // 3. Verifica due_date > 7 dias atrás\n  if (!task.due_date) continue;\n  \n  // due_date vem em milissegundos (timestamp string)\n  const dueDate = new Date(parseInt(task.due_date));\n  const diffDias = (agora - dueDate) / (1000 * 60 * 60 * 24);\n  \n  if (diffDias > DAYS_THRESHOLD) {\n    tarefasAtrasadas.push({\n      json: {\n        nome: task.name,\n        url: task.url,\n        status: statusAtual,\n        dueDate: dueDate.toLocaleDateString('pt-BR'),\n        diasAtraso: Math.floor(diffDias),\n        assignees: task.assignees?.map(a => a.username).join(', ') || 'Sem responsável'\n      }\n    });\n  }\n}\n\n// Se não houver tarefas atrasadas, retorna um item vazio\n// para o IF node detectar corretamente\nif (tarefasAtrasadas.length === 0) {\n  return [{ json: { hasOverdueTasks: false } }];\n}\n\nreturn tarefasAtrasadas;"
+      },
+      "name": "Code: Filtrar Atrasadas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "id": "filter-overdue"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.hasOverdueTasks }}",
+              "operation": "notEqual",
+              "value2": "false"
+            }
+          ]
+        }
+      },
+      "name": "IF: Tem Tarefas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "id": "if-has-tasks"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tarefas = $input.all();\nconst total = tarefas.length;\n\n// Formatar data e hora em PT-BR\nconst dataFormatada = new Date().toLocaleDateString('pt-BR', { \n  weekday: 'long', \n  year: 'numeric', \n  month: 'long', \n  day: 'numeric' \n});\nconst horaFormatada = new Date().toLocaleTimeString('pt-BR', {\n  hour: '2-digit',\n  minute: '2-digit'\n});\n\n// Construir mensagem\nlet mensagem = `🚨 *ALERTA: ${total} Tarefa(s) Atrasada(s)*\\n\\n`;\nmensagem += `📅 ${dataFormatada}\\n`;\nmensagem += `⏰ ${horaFormatada}\\n\\n`;\nmensagem += '━━━━━━━━━━━━━━━━━━━━\\n\\n';\n\ntarefas.forEach((item, index) => {\n  const t = item.json;\n  mensagem += `*${index + 1}. ${t.nome}*\\n`;\n  mensagem += `   📊 Status: ${t.status}\\n`;\n  mensagem += `   📅 Due Date: ${t.dueDate}\\n`;\n  mensagem += `   ⏱️ Atraso: ${t.diasAtraso} dias\\n`;\n  mensagem += `   👤 ${t.assignees}\\n`;\n  mensagem += `   🔗 [Abrir tarefa](${t.url})\\n\\n`;\n});\n\nmensagem += '━━━━━━━━━━━━━━━━━━━━\\n';\nmensagem += '💡 *Dica:* Atualize o status ou resolva estas tarefas!';\n\nreturn [{\n  json: {\n    chatId: '6892506764',\n    text: mensagem,\n    parseMode: 'Markdown'\n  }\n}];"
+      },
+      "name": "Code: Formatar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 200],
+      "id": "format-message"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Telegram: Enviar Alerta",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1450, 200],
+      "id": "telegram-send",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "name": "No Operation",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1450, 400],
+      "id": "no-op-end"
+    }
+  ],
+  "connections": {
+    "Schedule: 9h e 17h": {
+      "main": [
+        [
+          {
+            "node": "ClickUp - Lista 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ClickUp - Lista 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClickUp - Lista 1": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combinar Listas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClickUp - Lista 2": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combinar Listas",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge: Combinar Listas": {
+      "main": [
+        [
+          {
+            "node": "Code: Filtrar Atrasadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Filtrar Atrasadas": {
+      "main": [
+        [
+          {
+            "node": "IF: Tem Tarefas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Tem Tarefas?": {
+      "main": [
+        [
+          {
+            "node": "Code: Formatar Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Formatar Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Enviar Alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "ClickUp",
+      "id": "tag-clickup"
+    },
+    {
+      "name": "Automação",
+      "id": "tag-automation"
+    }
+  ],
+  "pinData": {},
+  "meta": {
+    "instanceId": "n8n-clickup-automation"
+  }
+}
