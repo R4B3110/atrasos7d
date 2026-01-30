@@ -1,13 +1,17 @@
 {
-  "mcpServers": {
-    "clickup": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-clickup"],
+  "mcps": {
+    "n8n-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/richardrabello/Documents/Cursor/ClickUp/mcp-server/dist/mcp/index.js"
+      ],
       "env": {
-        "CLICKUP_WORKSPACE_ID": "YOUR_WORKSPACE_ID_HERE",
-        "CLICKUP_SPACE_ID": "YOUR_SPACE_ID_HERE"
-      },
-      "disabled": false
+        "N8N_API_URL": "http://localhost:5678",
+        "N8N_API_KEY": "n8n_api_YOUR_KEY_HERE",
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "info",
+        "WEBHOOK_SECURITY_MODE": "moderate"
+      }
     }
   }
 }

@@ -45,3 +45,6 @@ coverage/
 # Temporary files
 tmp/
 temp/
+
+# MCP Server (clonar separadamente conforme N8N-LOCAL-SETUP.md)
+mcp-server/

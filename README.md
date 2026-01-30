@@ -1,6 +1,36 @@
-# ClickUp MCP Integration
+# ClickUp Automação + n8n MCP Integration
 
-Projeto TypeScript para integração com o servidor MCP (Model Context Protocol) oficial do ClickUp.
+Projeto completo para automação de tarefas do ClickUp com duas abordagens poderosas:
+
+1. **🚀 n8n Local + MCP**: Crie automações diretamente via API usando IA (RECOMENDADO)
+2. **☁️ n8n Cloud**: Importe workflows prontos (alternativa simples)
+
+## ⭐ Destaques
+
+### 🤖 Automação via n8n Local + MCP (NOVO!)
+
+Crie automações do ClickUp **diretamente via comandos de IA** no Cursor:
+
+- ✨ **Criação programática**: IA cria workflows pra você
+- 🎯 **Validação automática**: Garante que está correto antes de criar
+- 🔧 **Modificação fácil**: Peça à IA para alterar qualquer coisa
+- 💰 **Gratuito**: Roda localmente no seu computador
+- 🔒 **Controle total**: Seus dados ficam no seu ambiente
+
+**Setup rápido:**
+```bash
+# 1. Subir n8n local
+docker-compose -f docker-compose.n8n.yml up -d
+
+# 2. Reiniciar Cursor (para carregar o MCP)
+
+# 3. Pedir à IA:
+"Crie a automação de alertas de tarefas atrasadas usando o MCP"
+```
+
+📖 **[Guia completo: N8N-LOCAL-SETUP.md](N8N-LOCAL-SETUP.md)**
+
+---
 
 ## Funcionalidades
 
@@ -10,7 +40,8 @@ Projeto TypeScript para integração com o servidor MCP (Model Context Protocol)
 - ✅ Busca em documentos e comentários
 - ✅ Autenticação OAuth 2.1 com PKCE
 - ✅ Integração nativa com Cursor IDE
-- 🤖 **Automação de alertas para tarefas atrasadas via n8n**
+- 🤖 **Automação de alertas via n8n (Cloud OU Local)**
+- 🚀 **n8n-mcp integrado**: Crie workflows via IA
 
 ## Requisitos
 
@@ -124,7 +155,40 @@ Este projeto usa OAuth 2.1 com PKCE para autenticação segura. O fluxo é:
 
 O servidor MCP do ClickUp respeita os mesmos rate limits da API oficial do ClickUp. Consulte a [documentação de rate limits](https://developer.clickup.com/docs/rate-limits).
 
-## 🤖 Automação: Alertas de Tarefas Atrasadas (n8n)
+## 🤖 Automação: Alertas de Tarefas Atrasadas
+
+Este projeto oferece **duas abordagens** para criar a automação de alertas:
+
+### Comparação Rápida
+
+| Aspecto | n8n Local + MCP | n8n Cloud |
+|---------|-----------------|-----------|
+| **Setup** | Docker + Reiniciar Cursor | Conta online + Importar JSON |
+| **Criação** | IA cria pra você via comandos | Importar workflow pronto |
+| **Custo** | $0 (roda localmente) | $0 (plano gratuito 5k exec/mês) |
+| **Modificações** | Peça à IA para alterar | Interface visual ou código |
+| **Controle** | Total (seus dados, seu ambiente) | Limitado (cloud externo) |
+| **Disponibilidade** | 24/7 se Docker ativo | 24/7 garantido |
+| **Manutenção** | Você gerencia | n8n gerencia |
+
+### Qual Escolher?
+
+**Use n8n Local + MCP se:**
+- ✅ Tem Docker instalado
+- ✅ Quer controle total
+- ✅ Prefere criar via comandos de IA
+- ✅ Quer dados locais
+- ✅ Vai fazer modificações frequentes
+
+**Use n8n Cloud se:**
+- ✅ Quer algo rápido e sem setup
+- ✅ Não quer gerenciar infraestrutura
+- ✅ Prefere interface visual
+- ✅ Já usa n8n Cloud
+
+---
+
+## 🚀 Opção 1: n8n Local + MCP (Recomendado)
 
 Este projeto inclui uma automação completa para monitorar tarefas atrasadas no ClickUp e enviar alertas via Telegram.
 
@@ -135,44 +199,91 @@ Este projeto inclui uma automação completa para monitorar tarefas atrasadas no
 - 🏷️ **Filtra por tag** "semana anterior"
 - ⏰ **Detecta atrasos** maiores que 7 dias
 - 📱 **Envia alertas** formatados no Telegram
-- ☁️ **Roda 24/7** na nuvem (n8n Cloud gratuito)
-- 🎯 **Zero código** - tudo visual no n8n
+- 🤖 **Criação via IA** - peça ao Cursor para criar
+- 🔧 **Modificação via IA** - peça ao Cursor para alterar
 
-### 📦 Arquivos da Automação
+### 📦 Arquivos do Projeto
 
 ```
+# Setup n8n Local + MCP
+docker-compose.n8n.yml           # Docker Compose para n8n local
+mcp-server/                      # n8n-mcp integrado (clonado)
+.cursor/mcp.json                 # Configuração MCP no Cursor
+N8N-LOCAL-SETUP.md               # Guia completo de setup
+
+# Alternativa: n8n Cloud
 workflows/
 ├── clickup-alertas-n8n.json    # Workflow n8n pronto para importar
 └── test-n8n-logic.js            # Testes de validação da lógica
-
-N8N-SETUP.md                      # Guia completo passo a passo
+N8N-SETUP.md                     # Guia n8n Cloud
 ```
 
-### 🚀 Como Usar
+### 🚀 Como Usar (n8n Local + MCP)
 
-1. **Crie uma conta gratuita no n8n Cloud**
-   - Acesse: https://n8n.io
-   - Plano gratuito: 5.000 execuções/mês (mais que suficiente!)
+1. **Subir n8n local via Docker**
+```bash
+docker-compose -f docker-compose.n8n.yml up -d
+```
 
-2. **Importe o workflow**
-   - Baixe o arquivo `workflows/clickup-alertas-n8n.json`
-   - No n8n: Workflows → Import from File
+2. **Criar conta e API Key no n8n**
+   - Acesse: http://localhost:5678
+   - Crie conta de admin
+   - Settings → API → Create API Key
 
-3. **Configure as credenciais**
-   - **ClickUp**: Adicione seu API Token (obtenha em https://app.clickup.com/settings/apps)
-   - **Telegram**: Adicione seu Bot Token (crie com @BotFather)
+3. **Configurar API Key**
+   - Edite `mcp-server/.env` com sua API key
+   - Edite `.cursor/mcp.json` com a mesma key
+   - Reinicie o Cursor
 
-4. **Ative o workflow**
-   - Teste manualmente primeiro
-   - Depois ative para rodar automaticamente
+4. **Criar automação via IA**
+   - No Cursor, peça: "Crie a automação de alertas do ClickUp usando o MCP"
+   - A IA vai criar o workflow diretamente no seu n8n!
+
+5. **Configurar credenciais no n8n**
+   - ClickUp API Token
+   - Telegram Bot Token (já configurado)
+
+6. **Ativar workflow**
+   - No n8n, ative o toggle verde
+   - Teste manualmente
 
 ### 📖 Documentação Completa
 
+**n8n Local + MCP:** Consulte o **[N8N-LOCAL-SETUP.md](N8N-LOCAL-SETUP.md)** para:
+- Setup completo Docker + MCP
+- Como gerar API Key do n8n
+- Configuração do MCP no Cursor
+- Como usar IA para criar workflows
+- Troubleshooting detalhado
+
+---
+
+## ☁️ Opção 2: n8n Cloud (Alternativa)
+
+Prefere não usar Docker? Use o n8n Cloud!
+
+### 🚀 Como Usar (n8n Cloud)
+
+1. **Criar conta no n8n Cloud**
+   - Acesse: https://n8n.io
+   - Plano gratuito: 5.000 execuções/mês
+
+2. **Importar workflow**
+   - Baixe `workflows/clickup-alertas-n8n.json`
+   - No n8n: Workflows → Import from File
+
+3. **Configurar credenciais**
+   - ClickUp API Token
+   - Telegram Bot Token
+
+4. **Ativar**
+   - Toggle verde → Save
+
+### 📖 Documentação
+
 Consulte o **[N8N-SETUP.md](N8N-SETUP.md)** para:
-- Guia passo a passo com screenshots
-- Como obter API tokens e Bot tokens
-- Configuração de credenciais
-- Testes e troubleshooting
+- Guia passo a passo
+- Como obter API tokens
 - Personalização de horários e filtros
 
 ### 🎯 Critérios de Alerta
